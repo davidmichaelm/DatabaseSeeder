@@ -1,12 +1,11 @@
-﻿using System;
-
-namespace SeedDatabase
+﻿namespace SeedDatabase
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            DatabaseSeeder databaseSeeder = new DatabaseSeeder();
+            databaseSeeder.Run();
         }
     }
 }
