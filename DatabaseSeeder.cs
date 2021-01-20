@@ -15,7 +15,7 @@ namespace SeedDatabase
             // PopulateLocationsTable(locations);
             var events = GenerateRandomEvents(locations);
             // PopulateEventsTable(events);
-            // ReadEventsTable();
+            ReadEventsTable(events);
         }
         
         private List<Location> GenerateLocations()
@@ -91,6 +91,15 @@ namespace SeedDatabase
             var minutes = _random.Next(0, 60);
             var seconds = _random.Next(0, 60);
             return new DateTime(date.Year, date.Month, date.Day, hour, minutes, seconds);
+        }
+
+        private void ReadEventsTable(List<Event> events)
+        {
+            // TODO: Read data from database instead of parameters
+            events.ForEach(e =>
+            {
+                Console.WriteLine($"{e.TimeStamp} - {e.Location.Name}");
+            });
         }
     }
 }
