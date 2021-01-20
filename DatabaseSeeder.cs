@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using SeedDatabase.Model;
 
 namespace SeedDatabase
@@ -12,10 +14,12 @@ namespace SeedDatabase
             _random = new Random();
             
             var locations = GenerateLocations();
-            // PopulateLocationsTable(locations);
+            PopulateLocationsTable(locations);
+            
             var events = GenerateRandomEvents(locations);
-            // PopulateEventsTable(events);
-            ReadEventsTable(events);
+            PopulateEventsTable(events);
+            
+            ReadEventsTable();
         }
         
         private List<Location> GenerateLocations()
@@ -24,17 +28,14 @@ namespace SeedDatabase
             {
                 new Location
                 {
-                    LocationId = 0, 
                     Name = "Garage"
                 },
                 new Location
                 {
-                    LocationId = 1, 
                     Name = "Thermostat"
                 },
                 new Location
                 {
-                    LocationId = 2, 
                     Name = "Kitchen Light"
                 }
             };
@@ -52,7 +53,7 @@ namespace SeedDatabase
                 for (var j = 0; j < numEvents; j++)
                 {
                     var date = DateTime.Today.AddDays(day);
-                    var newEvent = GenerateRandomEvent(events.Count, locations, date);
+                    var newEvent = GenerateRandomEvent(locations, date);
                     events.Add(newEvent);
                 }
             }
@@ -60,16 +61,14 @@ namespace SeedDatabase
             return events;
         }
 
-        private Event GenerateRandomEvent(int eventId, List<Location> locations, DateTime date)
+        private Event GenerateRandomEvent(List<Location> locations, DateTime date)
         {
             var location = GetRandomLocation(locations);
             
             return new Event
             {
-                EventId = eventId,
                 TimeStamp = GetRandomTimeStamp(date),
                 Flagged = GetRandomFlag(),
-                LocationId = location.LocationId,
                 Location = location
             };
         }
@@ -93,13 +92,37 @@ namespace SeedDatabase
             return new DateTime(date.Year, date.Month, date.Day, hour, minutes, seconds);
         }
 
-        private void ReadEventsTable(List<Event> events)
+        private void ReadEventsTable()
         {
-            // TODO: Read data from database instead of parameters
-            events.ForEach(e =>
+            try
             {
-                Console.WriteLine($"{e.TimeStamp} - {e.Location.Name}");
-            });
+                using var db = new EventsContext();
+                var events = db.Events
+                    .Include("Location")
+                    .OrderBy(e => e.TimeStamp)
+                    .ToList();
+                events.ForEach(e =>
+                {
+                    Console.WriteLine($"{e.TimeStamp} - {e.Location.Name}");
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error reading data: " + ex.Message);
+            }
+            
+        }
+
+        private void PopulateLocationsTable(List<Location> locations)
+        {
+            using var db = new EventsContext();
+            db.AddLocations(locations);
+        }
+
+        private void PopulateEventsTable(List<Event> events)
+        {
+            using var db = new EventsContext();
+            db.AddEvents(events);
         }
     }
 }
